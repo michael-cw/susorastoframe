@@ -1,0 +1,34 @@
+Package: susorastoframe
+Title: Shiny Application to aggregate raster data within polygons for PPS
+    sampling
+Version: 0.1.0
+Authors@R: 
+    person("Michael", "Wild", , "mwild@worldbank.org", role = c("aut", "cre"))
+Description: A simple shiny application which allows to update a spatial
+    polygons area sampling frame with one ore more raster layers, which
+    can be used for PPS sampling in the susospatsample app. Moreover, the
+    application allows also for the creation of a composite measure of
+    size, using several input raster for a single MOS. The application is
+    based on the terra and the sf package.
+License: MIT + file LICENSE
+Imports: 
+    data.table,
+    dplyr,
+    leaflet,
+    magrittr,
+    mapview,
+    raster,
+    sf,
+    shiny,
+    spdep,
+    stats,
+    terra,
+    tidyr,
+    tidyterra,
+    utils,
+    waiter,
+    zip
+Encoding: UTF-8
+Language: en
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
