@@ -1,0 +1,104 @@
+/* styles.scss */
+
+/* Apply Arial font to all body text */
+body {
+    font-family: Arial, sans-serif;
+}
+
+
+/* Style for the title bar */
+h2 {
+    background-color: #002244;  /* Dark blue color */
+    color: #FFFFFF;
+    text-align: center;
+    font-weight: bold;
+    padding: 10px;
+    margin-bottom: 20px; /* Adjust spacing as needed */
+}
+
+/* Style for Shiny action buttons, file input button, and input group addon */
+.action-button, .btn-file, .input-group-addon, .btn {
+    background-color: #002244;  /* Dark blue color */
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    line-height: normal;
+    height: auto;
+}
+
+.action-button:hover, .btn-file:hover, .input-group-addon:hover .btn-download:hover {
+    background-color: #009FDA;  /* Light blue color */
+}
+
+/* Style for text in file input button and input group addon */
+.fileinput-button span, .input-group-addon {
+    color: #FFFFFF;
+}
+
+/* Style for form control elements and selectize input, with adjusted height, padding, and border radius */
+.input-group .form-control, .selectize-control .selectize-input {
+    height: auto;
+    padding: 10px;
+    margin: 4px 0;
+    border-radius: 8px;
+}
+
+/* Specific style for selectInput, excluding color */
+.selectize-control .selectize-input {
+    background-color: inherit;  /* Use default or parent background color */
+    color: inherit;             /* Use default or parent text color */
+    border: 1px solid #ccc;     /* Adjust border styling as needed */
+}
+
+/* Style for the file input progress bar */
+.progress-bar {
+    background-color: #002244; /* Dark blue color for progress bar */
+}
+
+/* Styles for DataTable with alternating row colors */
+.dataTables_wrapper .dataTable tbody tr:nth-child(odd) {
+    background-color: #009FDA; /* Blue for odd rows */
+    color: #FFFFFF;
+}
+
+.dataTables_wrapper .dataTable tbody tr:nth-child(even) {
+    background-color: #FFFFFF;   /* #FFFFFF for even rows */
+    color: #002244;
+}
+
+/* Centering the DataTable */
+.dataTables_wrapper {
+    margin: 0 auto;
+    width: 20vw;  /* Adjust as necessary */
+}
+
+/* Style for DataTable cells to wrap text and use two lines */
+.dataTables_wrapper .dataTable td {
+    max-width: 10vw;  /* Set maximum width */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dataTables_wrapper .dataTable td {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.dataTables_wrapper tfoot {
+        display: none;
+      }
+
+/* modal header */
+.modal-header {
+          background-color: #002244;
+          color: white;
+          text-align: center;
+        }

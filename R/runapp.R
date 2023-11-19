@@ -18,6 +18,9 @@
 
 
 runRasToFrameApp <- function(launch.browser = T) {
+  # add resource path to www
+  #addResourcePath("www", file.path(getwd(), "www"))
+  shiny::addResourcePath("www", system.file("www", package = "susorastoframe"))
   # get original options
   original_options <- list(
     shiny.maxRequestSize = getOption("shiny.maxRequestSize")
