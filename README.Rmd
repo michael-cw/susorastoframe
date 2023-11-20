@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 <div align="justify">
 This repository contains the Survey Solutions Raster-to-Frame Application. It is part of the Survey Solutions Spatial Toolbox to support survey sampling and implementation using Spatial Resources along with the [Survey Solutions Computer Assisted Survey System (CASS)](https://mysurvey.solutions/en/).
 
-The goal of the Survey Solutions Raster-to-Frame Application is to provide a simple shiny application which allows to update a spatial polygons area sampling frame with one ore more raster layers, which can be used for PPS sampling in the susospatsample app. Moreover, the application allows also for the creation of a composite measure of size (MOS), using several input raster to create a composite MOS.
+The goal of the Survey Solutions Raster-to-Frame Application is to provide a simple shiny application which allows to update a spatial polygons area sampling frame with one or more raster layers, which can be used for PPS sampling in the susospatsample app. Moreover, the application allows also for the creation of a composite measure of size (MOS), using several input raster to create a composite MOS.
 
 In addition it also allows to create homogeneous groups of cluster based on the extracted raster through either K-means clustering or spatially constrained clustering implemented with the Skater algorithm. The result can subsequently be used as sampling domains in the susospatsample app.
 

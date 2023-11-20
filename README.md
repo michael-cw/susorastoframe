@@ -21,7 +21,7 @@ with the [Survey Solutions Computer Assisted Survey System
 
 The goal of the Survey Solutions Raster-to-Frame Application is to
 provide a simple shiny application which allows to update a spatial
-polygons area sampling frame with one ore more raster layers, which can
+polygons area sampling frame with one or more raster layers, which can
 be used for PPS sampling in the susospatsample app. Moreover, the
 application allows also for the creation of a composite measure of size
 (MOS), using several input raster to create a composite MOS.
