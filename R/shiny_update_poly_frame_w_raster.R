@@ -35,6 +35,7 @@ geospatialUIside <- function(id) {
     actionButton(ns("cluster_btn_sp"), "Spatial Clustering"),
     selectVariablesUI(ns("composite_btn"), "Composite MOS"),
     numericInput(ns("clusters"), "Number of clusters", 9),
+    numericInput(ns("cluSEED"), "Set Seed", value = floor(stats::runif(1, 1000, 9999)), min = 0, step = 1),
     downloadButton(ns("download_shapefile"), "Download Clustered Shapefile"),
     downloadButton(ns("download_df"), "Download Clustered Table (.csv)")
 
@@ -61,6 +62,8 @@ geospatialUImain <- function(id) {
 geospatialServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     reactive_values <- reactiveValues(adm = NULL, raster = NULL, clustered = NULL)
+    # reactive val for seed
+    cluster_seed <- reactiveVal(NULL)
 
     observeEvent(input$shapefile, {
       # 1. Load only the shape file
@@ -125,6 +128,13 @@ geospatialServer <- function(id) {
           adm_lc <- terra::extract(reactive_values$raster, reactive_values$adm, fun = sum, na.rm = TRUE, exact = FALSE, bind = TRUE)
         }
         adm_lc <- adm_lc %>% tidyterra::rename({{vaname_new}} := dplyr::all_of(varname))
+
+        # check if varname_new contains NA and if so, show notification and replace with 0
+        if(any(is.na(adm_lc[[vaname_new]]))){
+          showNotification("Extracted raster values contains NA values for some areas. Replacing with 0.", type = "warning")
+          adm_lc[[vaname_new]][is.na(adm_lc[[vaname_new]])]<-0
+        }
+
         reactive_values$adm <- adm_lc
         # add raster file name and extract function to raster_a dataframe
         raster_aDF(rbind(rasdf_old, data.frame("RasterFile" = input$rasterfile$name, "ExtractFunction" = input$extractfun)))
@@ -150,6 +160,9 @@ geospatialServer <- function(id) {
     observeEvent(input$cluster_btn, {
       adm_lc<-req(reactive_values$adm)
       req(counter()>0)
+      req(input$clusters>0)
+      req(input$cluSEED>0)
+
       waiter::waiter_show(
         color = "rgba(13, 71, 161, 0.7)",
         html = tagList(
@@ -157,12 +170,14 @@ geospatialServer <- function(id) {
           "Kmeans Cluster Creation ..."
         )
       )
-      # Execute extraction and clustering
+      # Execute clustering
       tryCatch({
-        # Extract raster values
-        # adm_lc <- terra::extract(reactive_values$raster, reactive_values$adm, fun = mean, na.rm = TRUE, exact = FALSE, bind = TRUE)
-        # adm_lc <- adm_lc %>% rename(ag_land_share = label_mean)
+        # Convert to sf
         adm_lc <- adm_lc %>% st_as_sf()
+
+        # set seed for reproducibility
+        set.seed(input$cluSEED)
+        cluster_seed(input$cluSEED)
 
         # Perform k-means clustering
         reactive_values$clustered <- add_kmeans_group(adm_lc, input$clusters, sprintf("var_%d", 1:counter()))
@@ -188,6 +203,9 @@ geospatialServer <- function(id) {
     observeEvent(input$cluster_btn_sp, {
       adm_lc<-req(reactive_values$adm)
       req(counter()>0)
+      req(input$cluSEED>0)
+      req(input$clusters>0)
+
       waiter::waiter_show(
         color = "rgba(13, 71, 161, 0.7)",
         html = tagList(
@@ -195,14 +213,17 @@ geospatialServer <- function(id) {
           "Spatial Cluster Creation ..."
         )
       )
-      # Execute extraction and clustering
+      # Execute clustering
       tryCatch({
-        # Extract raster values
-        # adm_lc <- terra::extract(reactive_values$raster, reactive_values$adm, fun = mean, na.rm = TRUE, exact = FALSE, bind = TRUE)
-        # adm_lc <- adm_lc %>% rename(ag_land_share = label_mean)
+        # Convert to sf
         adm_lc <- adm_lc %>% st_as_sf()
 
-        # Perform k-means clustering
+        # set seed for reproducibility
+        set.seed(input$cluSEED)
+        cluster_seed(input$cluSEED)
+
+
+        # Perform skater clustering
         adm_lc$ones<-1
         reactive_values$clustered <- add_skater_group(adm_lc, input$clusters-1, sprintf("var_%d", 1:counter()),
                                                       restr.val = round((nrow(adm_lc)/input$clusters)/2), restr.var = "ones")
@@ -229,47 +250,59 @@ geospatialServer <- function(id) {
 
     output$download_shapefile <- downloadHandler(
       filename = function() {
-        paste("clustered_data", Sys.Date(), ".zip", sep = "")
+        paste("clustered_data", Sys.Date(),"_seed_", cluster_seed(), ".zip", sep = "")
       },
       content = function(file) {
         req(reactive_values$clustered)
         # Define the temporary directory to save the shapefiles
-        shp_dir <- tempdir()
-        shp_path <- file.path(shp_dir, "clustered_shapefile.shp")
-        dir.create(shp_path)
+        shp_dir <- file.path(tempdir(), "download")
+        # if dir does not exist, create
+        if(!dir.exists(shp_dir)) dir.create(shp_dir, recursive = TRUE, showWarnings = FALSE)
+        # shape file path
+        shp_path<-file.path(shp_dir, "clustered_shapefile.shp")
 
         # Save the sf object as a shapefile
-        st_write(reactive_values$clustered, shp_path, delete_layer = TRUE)
+        sf::st_write(reactive_values$clustered, shp_path, delete_layer = TRUE)
 
         # Zip the shapefile
-        zipfile <- paste0(shp_path, ".zip")
-        zip::zip(zipfile, files = list.files(shp_path, full.names = TRUE), mode = "cherry-pick")
+        zipfile <- file.path(shp_dir, "zipfile.zip")
+        zip::zip(zipfile,
+                 files = list.files(shp_dir, full.names = TRUE, pattern = "(.dbf$)|(.prj$)|(.shp$)|(.shx$)"),
+                 mode = "cherry-pick")
 
         # Copy the zipfile to the download location
         file.copy(zipfile, file, overwrite = TRUE)
+
+        # Delete the temporary directory
+        unlink(shp_dir, recursive = TRUE)
       }
     )
 
     output$download_df <- downloadHandler(
       filename = function() {
-        paste("clustered_data_tabular", Sys.Date(), ".zip", sep = "")
+        paste("clustered_data_tabular", Sys.Date(),"_seed_", cluster_seed() ,".zip", sep = "")
       },
       content = function(file) {
         req(reactive_values$clustered)
         # Define the temporary directory to save the shapefiles
-        shp_dir <- tempdir()
-        shp_path <- file.path(shp_dir, "clustered_shapefile.shp")
-        dir.create(shp_path)
+        shp_dir <- file.path(tempdir(), "download")
+        # if dir does not exist, create
+        if(!dir.exists(shp_dir)) dir.create(shp_dir, recursive = TRUE, showWarnings = FALSE)
+        # shape file path
+        shp_path <- file.path(shp_dir, "clustered_shapefile.csv")
 
-        # Save the sf object as a shapefile
-        st_write(reactive_values$clustered, shp_path, delete_layer = TRUE)
+        # Save the dataframe object as a csv with fwrite
+        data.table::fwrite(reactive_values$clustered %>% sf::st_set_geometry(NULL), shp_path)
 
         # Zip the shapefile
-        zipfile <- paste0(shp_path, ".zip")
-        zip::zip(zipfile, files = list.files(shp_path, full.names = TRUE), mode = "cherry-pick")
+        zipfile <- file.path(shp_dir, "zipfile.zip")
+        zip::zip(zipfile, files = shp_path, mode = "cherry-pick")
 
         # Copy the zipfile to the download location
         file.copy(zipfile, file, overwrite = TRUE)
+
+        # Delete the temporary directory
+        unlink(shp_dir, recursive = TRUE)
       }
     )
   })
