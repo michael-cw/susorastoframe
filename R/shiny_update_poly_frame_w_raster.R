@@ -109,6 +109,7 @@ geospatialServer <- function(id) {
       req(reactive_values$raster)
       rasdf_old<-req(raster_aDF())
       waiter::waiter_show(
+        color = "rgba(13, 71, 161, 0.7)",
         html = tagList(
           waiter::spin_fading_circles(),
           "Extracting Raster Cells ..."
@@ -149,7 +150,13 @@ geospatialServer <- function(id) {
     observeEvent(input$cluster_btn, {
       adm_lc<-req(reactive_values$adm)
       req(counter()>0)
-
+      waiter::waiter_show(
+        color = "rgba(13, 71, 161, 0.7)",
+        html = tagList(
+          waiter::spin_fading_circles(),
+          "Kmeans Cluster Creation ..."
+        )
+      )
       # Execute extraction and clustering
       tryCatch({
         # Extract raster values
@@ -162,6 +169,7 @@ geospatialServer <- function(id) {
 
         # Plot results
         output$map <- leaflet::renderLeaflet({
+          req(reactive_values$clustered)
           mapview(reactive_values$clustered, zcol = "group")@map
         })
 
@@ -173,13 +181,20 @@ geospatialServer <- function(id) {
           paste("An error has occurred:", e$message)
         ))
       })
+      waiter::waiter_hide()
     })
 
     # create spatially constrained (Skater) cluster with add_skater_group
     observeEvent(input$cluster_btn_sp, {
       adm_lc<-req(reactive_values$adm)
       req(counter()>0)
-
+      waiter::waiter_show(
+        color = "rgba(13, 71, 161, 0.7)",
+        html = tagList(
+          waiter::spin_fading_circles(),
+          "Spatial Cluster Creation ..."
+        )
+      )
       # Execute extraction and clustering
       tryCatch({
         # Extract raster values
@@ -194,6 +209,7 @@ geospatialServer <- function(id) {
 
         # Plot results
         output$map <- leaflet::renderLeaflet({
+          req(reactive_values$clustered)
           mapview(reactive_values$clustered, zcol = "group")@map
         })
 
@@ -205,6 +221,7 @@ geospatialServer <- function(id) {
           paste("An error has occurred:", e$message)
         ))
       })
+      waiter::waiter_hide()
     })
 
     # Composite Size Measure Calculation
